@@ -1,5 +1,5 @@
-import { ReactNode } from 'react';
-import { Sidebar } from './Sidebar';
+import { ReactNode } from "react";
+import Sidebar from "./Sidebar";
 
 interface LayoutProps {
   children: ReactNode;
@@ -7,9 +7,10 @@ interface LayoutProps {
 
 export const Layout = ({ children }: LayoutProps) => {
   return (
-    <div className="min-h-screen bg-background ghost-grid">
+    <div className="min-h-screen bg-background ghost-grid flex">
       <Sidebar />
-      <main className="md:ml-64 min-h-screen">
+
+      <main className="flex-1 md:ml-72 min-h-screen">
         {children}
       </main>
     </div>

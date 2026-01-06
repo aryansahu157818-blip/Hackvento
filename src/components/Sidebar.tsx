@@ -1,86 +1,80 @@
-import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Ghost, Home, Archive, Plus, LogOut, User, Menu, X } from 'lucide-react';
-import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { logOut } from "@/lib/firebase";
+import {
+  LayoutDashboard,
+  Archive,
+  PlusCircle,
+  User,
+  LogOut,
+} from "lucide-react";
 
-const navItems = [
-  { path: '/', label: 'Home', icon: Home },
-  { path: '/vault', label: 'Ghost Vault', icon: Archive },
-  { path: '/ghost', label: 'Ghost a Project', icon: Plus },
-];
-
-export const Sidebar = () => {
+export default function Sidebar() {
+  const { user } = useAuth();
   const location = useLocation();
-  const { user, logOut } = useAuth();
-  const [isOpen, setIsOpen] = useState(true);
+
+  const navItems = [
+    { to: "/", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/vault", label: "Ghost Vault", icon: Archive },
+	{ to: "/ghost", label: "Submit Project", icon: PlusCircle }
+    ];
 
   return (
-    <>
-      {/* Mobile toggle */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-card border border-border md:hidden"
-      >
-        {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-      </button>
+    <aside className="w-72 min-h-screen border-r border-sidebar-border bg-background relative">
+      <div className="sticky top-0 h-full flex flex-col justify-between">
+        <div>
+          {/* Logo */}
+          <div className="p-6">
+            <h1 className="text-2xl font-bold">Ghost Whisperer</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Revive abandoned code.
+            </p>
+          </div>
 
-      {/* Sidebar */}
-      <motion.aside
-        initial={{ x: -280 }}
-        animate={{ x: isOpen ? 0 : -280 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="fixed left-0 top-0 h-screen w-64 bg-sidebar border-r border-sidebar-border z-40 flex flex-col"
-      >
-        {/* Logo */}
-        <div className="p-6 border-b border-sidebar-border">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="relative">
-              <Ghost className="w-8 h-8 text-primary transition-all duration-300 group-hover:scale-110" />
-              <div className="absolute inset-0 blur-lg bg-primary/30 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
-            <span className="text-xl font-bold neon-text">Ghost Whisperer</span>
-          </Link>
+          {/* Navigation */}
+          <nav className="p-4 space-y-2">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active = location.pathname === item.to;
+
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+                    active
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            const Icon = item.icon;
-
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 group ${
-                  isActive
-                    ? 'bg-primary/20 text-primary neon-border'
-                    : 'text-muted-foreground hover:text-primary hover:bg-sidebar-accent'
-                }`}
-              >
-                <Icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
-                <span className={`font-medium ${isActive ? 'neon-text' : ''}`}>{item.label}</span>
-                {isActive && (
-                  <motion.div
-                    layoutId="activeIndicator"
-                    className="ml-auto w-2 h-2 rounded-full bg-primary"
-                    style={{ boxShadow: '0 0 10px hsl(142 71% 45% / 0.8)' }}
-                  />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* User section */}
+        {/* User Section */}
         <div className="p-4 border-t border-sidebar-border">
           {user ? (
             <div className="space-y-3">
               <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-sidebar-accent">
-                <User className="w-5 h-5 text-primary" />
-                <span className="text-sm text-foreground truncate">{user.email}</span>
+                <div className="w-9 h-9 rounded-full border bg-sidebar-accent flex items-center justify-center font-bold text-primary">
+                  {(user.displayName || user.email || "G")[0].toUpperCase()}
+                </div>
+
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold truncate">
+                    {user.displayName || "Ghost Whisperer"}
+                  </span>
+
+                  <span className="text-xs text-muted-foreground truncate">
+                    {user.email}
+                  </span>
+                </div>
               </div>
+
               <button
                 onClick={logOut}
                 className="flex items-center gap-3 w-full px-4 py-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
@@ -99,18 +93,10 @@ export const Sidebar = () => {
             </Link>
           )}
         </div>
+      </div>
 
-        {/* Decorative elements */}
-        <div className="absolute bottom-20 left-4 right-4 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-      </motion.aside>
-
-      {/* Overlay for mobile */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 md:hidden"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-    </>
+      {/* Decorative line */}
+      <div className="absolute bottom-20 left-4 right-4 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+    </aside>
   );
-};
+}
